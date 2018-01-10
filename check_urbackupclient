@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# by Oliver Katte @2018
+#
+#########################
+
+function get_backuptime {
+        _timestamp=`urbackupclientctl status | grep last_backup_time | cut -d" " -f2 | sed -e "s/,//g"`
+        _backuptime=$(date -d @$_timestamp +%H\:%M\:%S\ %d.%m.%Y)
+	_day=$(date -d @$_timestamp +%d.%m.%Y)
+	_date=$(date +%d.%m.%Y)
+	if [ "$_day" == "$_date" ]; then
+		echo "OK - Last backup $_backuptime"
+	else
+	        echo "CRITICAL - Please check backups $_backuptime"
+	fi
+        }
+
+function get_backupstatus {
+        _get_status=`urbackupclientctl status | grep failed | cut -d":" -f1 | sed -e 's/\"//g'`
+        if [ -z "$_get_status" ]; then
+		echo "OK - Backup is fine"
+		exit 0
+	else
+		echo "CRITICAL - Please check backups"
+		exit 2
+	fi
+	}
+
+function help {
+	echo "Help!"
+	echo "Please the following options"
+	echo "-b : Checks the time of the last backup"
+	echo "-s : Checks the status of all backups"
+	echo "$0 -b/-s"
+	}
+	
+while getopts "bsh" opt; do
+   case $opt in
+	b)
+	get_backuptime
+	;;
+	s)
+	get_backupstatus
+	;;
+	h)
+	help
+	;;
+	*)
+	help
+	;;
+   esac
+done
+
+

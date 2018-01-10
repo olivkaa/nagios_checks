@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# by Oliver Katte @2018
+#
+##########
+
+function check_running_container {
+	if [ -z "$_container" ]; then
+		echo "Please enter a name of a container."
+		help
+	fi
+	status=`docker container inspect $_container 2>/dev/null | grep -i "status" | sed -e 's/\"//g' | sed -e 's/\ //g' | cut -d":" -f2 | sed -e 's/\,//g'`
+	#status=`docker container inspect $_container`
+	case $status in
+		"running")
+		echo "OK | Container is up and running"
+		;;
+		"stopped")
+		echo "WARNING | Container is not running"
+		;;
+		*)
+		echo "$status | No container found"
+		;;
+	esac
+	}
+
+function check_container_updates {
+	if [ -z "$_container" ]; then
+                echo "Please enter a name of a container."
+		help
+        fi
+	_updates=`docker exec -it $_container apt update | grep -i "upgradable" | cut -d"." -f1`
+
+	if [ -z "$_updates" ]; then
+		echo "OK | No updates available"
+	else
+		echo "WARNING | Check updates"
+	fi
+	}
+
+function help() {
+	echo "Help!"
+	echo "Please choose the follwing options:"
+	echo "-h | Shows this help"
+	echo "-H | Set the host"
+	echo "-c | Set the container to check"
+	echo "-a | Check if container is active"
+	echo "-u | Check the container for updates"
+	echo "The options -a/-u require the option -c."
+	exit 0
+	}
+
+while getopts "H:c:auh" opt; do
+  case $opt in
+     a)
+     check_running_container
+     ;;
+     H)
+     _host=$OPTARG >&2
+     #echo $_host
+     ;;
+     c)
+     _container=$OPTARG >&2
+     #echo $_container
+     ;;
+     h)
+     help
+     ;;
+     u)
+     check_container_updates
+     ;;
+     \?)
+     echo "Invalid option: -$OPTARG" >&2
+     ;;
+  esac
+done
+

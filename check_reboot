@@ -1,0 +1,15 @@
+#!/usr/bin/python
+#
+# by Oliver Katte @2018
+#
+###############
+import os, os.path, sys
+
+file="/var/run/reboot-required"
+
+if os.path.isfile(file) and os.access(file, os.R_OK):
+	print 'CRITICAL - Please reboot'
+	sys.exit(2)
+else: 
+        print 'OK - No reboot required'
+	sys.exit(0)
